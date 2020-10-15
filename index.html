@@ -1,0 +1,194 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Sebastian Flyer</title>
+    <script src="./phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+    
+    var sebastian;
+    var sebastianTween;
+    
+
+    var leftBoundary;
+    var bottomBoundary;
+    var collectible; 
+    var obsticle; 
+    var cursors; 
+
+    var gravity = 600;
+    var thrust = 200;
+    var spawnTime = 3000;
+    var collectibleSpeed = 300;
+
+    var leftBoundaryPosition = 100;
+    var leftBoundaryBounds = 400;
+
+    var kmLabel;
+    var numKmLeft = 15000;
+    var travelSpeed = 5;
+    var kmTimer;
+
+    var config = {
+        type: Phaser.CANVAS,
+        width: 800,
+        height: 300,
+        physics: {
+            default: 'arcade',            
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }         
+    };
+
+    
+    var game = new Phaser.Game(config);
+
+    function preload ()
+    {
+       this.load.image('sky', 'assets/sky.png');   
+       this.load.image('cloud1', 'assets/cloud1.png');   
+       this.load.image('cloud2', 'assets/cloud2.png');   
+
+    }
+
+    function create ()
+    {
+        // Adding sky background
+        this.add.image(400, 150, "sky");
+
+        // Adding circle to player
+        sebastian = this.add.circle(100, 0, 40, 0xffffff);
+        // Adding sebastian to physics engine
+        this.physics.add.existing(sebastian, false);
+        sebastian.body.setCollideWorldBounds(true);        
+        sebastian.body.setGravityY(gravity);     
+        sebastian.body.setGravityX(-(gravity - 200));  
+        
+        // Adding left boundary
+        leftBoundary = this.add.rectangle(50, 150, 10, 300, 0xffffff, 0); 
+        this.physics.add.existing(leftBoundary, false);
+        leftBoundary.body.setImmovable(true);
+        // Adding tween
+        boundaryTween = this.tweens.add({
+            targets: leftBoundary,
+            x: 
+            {
+                getStart: function () 
+                {
+                    return leftBoundaryPosition - 50;
+                },
+                getEnd: function () 
+                {
+                    return leftBoundaryPosition;
+                },
+                ease: 'Sine.easeOut',
+                duration: 1000
+            }
+            
+        });
+
+        // Adding bottom boundary
+        bottomBoundary = this.add.rectangle(400, 250, 800, 10, 0xffffff, 0); 
+        this.physics.add.existing(bottomBoundary, false);
+        bottomBoundary.body.setImmovable(true);
+
+        // Creating spawn timer        
+        spawnTimer = this.time.addEvent({
+            delay: spawnTime, 
+            callback: spawnCollectible, 
+            callbackScope: this, 
+            loop: true 
+        });
+
+        // Adding colliders
+        this.physics.add.collider(sebastian, leftBoundary);
+        this.physics.add.collider(sebastian, bottomBoundary);
+
+        // Adding keyboard controls
+        //cursors = this.input.keyboard.createCursorKeys();    
+
+        // Adding text
+        kmLabel = this.add.text(600, 5, "Metros que faltam\naté o torneio", {
+            font: "14px Arial",
+            fill: "#eeeeee",
+            align: "right"
+        });
+        kmCount = this.add.text(730, 10, numKmLeft, {
+            font: "18px Arial",
+            fill: "#ffffff",
+            align: "right"
+        });
+        kmTimer = this.time.addEvent({ 
+            delay: travelSpeed * 100, 
+            callback: function() 
+            {
+                numKmLeft -= 1; 
+                kmCount.setText(numKmLeft);
+            }, 
+            callbackScope: this, 
+            loop: true 
+        });
+        
+        
+    }
+
+    function update ()
+    {
+        // Controls
+        if (this.input.activePointer.isDown)
+        {
+            sebastian.body.setVelocityY(-thrust);
+        }     
+    }
+
+    function spawnCollectible() 
+    {
+        if (collectible) 
+        { 
+            collectible.destroy(); 
+        }
+        collectible = this.physics.add.sprite(850, Phaser.Math.Between(0, 250), "cloud" + Phaser.Math.Between(1, 2));        
+        collectible.body.setVelocityX(-collectibleSpeed);
+
+        this.physics.add.overlap(sebastian, collectible, collect, null, this);
+    }
+
+    function collect (sebastian, collectible)
+    {
+        collectible.destroy();
+        this.cameras.main.flash();
+        speedUp();
+    }
+
+    function speedUp()
+    {
+        
+        if (leftBoundaryPosition < leftBoundaryBounds) 
+        {
+            collectibleSpeed += 100;
+            spawnTimer.delay -= 100; 
+            leftBoundaryPosition += 50;   
+            
+            // Adjusting travel time and timer speed
+            travelSpeed -= 1;  
+            kmTimer.delay = travelSpeed * 100;
+            boundaryTween.play();  
+        }                      
+    };
+
+</script>
+
+</body>
+</html>
