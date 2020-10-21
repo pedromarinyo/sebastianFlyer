@@ -6,8 +6,16 @@
     <script src="./phaser.min.js"></script>
     <style type="text/css">
         body {
+            width: 100%;
+            height: 100%;
             margin: 0;
-            text-align: center;
+            padding: 0;
+            background-color: #2a2a2a;
+            overflow: hidden;
+        }
+        canvas {
+            margin: 0;
+            padding: 0;
         }
     </style>
 </head>
@@ -15,33 +23,42 @@
 
 <script type="text/javascript">
     
-    var sebastian;
-    var sebastianTween;
-    
+    var sebastian;   
+
+    // gate values: start, game, success, failure
+    var gate = "start";
+    var startText;
+    var gameOverText;
+    var successText; 
 
     var leftBoundary;
     var bottomBoundary;
     var collectible; 
     var obsticle; 
+    var spawnTimer;
     var cursors; 
 
     var gravity = 600;
     var thrust = 200;
-    var spawnTime = 3000;
+    var spawnTime = 4000;
     var collectibleSpeed = 300;
 
     var leftBoundaryPosition = 100;
-    var leftBoundaryBounds = 400;
+    var leftBoundaryBounds = 250;
 
     var kmLabel;
-    var numKmLeft = 15000;
+    var numKmLeft = 10000;
     var travelSpeed = 5;
     var kmTimer;
 
+    var timeLeftCount;
+    var timeLeftTimer; 
+    var numTimeLeft = 3 * 60; 
+
     var config = {
         type: Phaser.CANVAS,
-        width: 800,
-        height: 300,
+        width: window.innerWidth * window.devicePixelRatio,
+        height: window.innerHeight * window.devicePixelRatio,
         physics: {
             default: 'arcade',            
         },
@@ -59,25 +76,41 @@
     {
        this.load.image('sky', 'assets/sky.png');   
        this.load.image('cloud1', 'assets/cloud1.png');   
-       this.load.image('cloud2', 'assets/cloud2.png');   
+       this.load.image('cloud2', 'assets/cloud2.png');  
+       this.load.image('sebastian1', 'assets/sebastian1.png');  
+       this.load.image('sebastian2', 'assets/sebastian2.png');  
+       this.load.image('sebastian3', 'assets/sebastian3.png');   
 
     }
 
     function create ()
     {
-        // Adding sky background
-        this.add.image(400, 150, "sky");
+        this.cameras.main.setBackgroundColor('#9addf3')
 
-        // Adding circle to player
-        sebastian = this.add.circle(100, 0, 40, 0xffffff);
+        // Adding sky background
+        this.add.image(game.canvas.width / 2, 300, "sky").setScale(game.canvas.width/800, 600/game.canvas.height);
+            
+        // Creating sebastian flying animation
+        this.anims.create({
+            key: "sebastianFlying",
+            frames: [
+                {key: "sebastian1"},
+                {key: "sebastian2"},
+                {key: "sebastian3"}
+            ],
+            frameRate: 15,
+            repeat: -1
+        });
+
         // Adding sebastian to physics engine
-        this.physics.add.existing(sebastian, false);
+        sebastian = this.physics.add.sprite(200, 0, "sebastian1").play("sebastianFlying");
+        sebastian.setScale(.15, .15).refreshBody();
         sebastian.body.setCollideWorldBounds(true);        
         sebastian.body.setGravityY(gravity);     
         sebastian.body.setGravityX(-(gravity - 200));  
         
         // Adding left boundary
-        leftBoundary = this.add.rectangle(50, 150, 10, 300, 0xffffff, 0); 
+        leftBoundary = this.add.rectangle(50, game.canvas.height / 2, 10, game.canvas.height, 0xffffff, 0); 
         this.physics.add.existing(leftBoundary, false);
         leftBoundary.body.setImmovable(true);
         // Adding tween
@@ -100,7 +133,7 @@
         });
 
         // Adding bottom boundary
-        bottomBoundary = this.add.rectangle(400, 250, 800, 10, 0xffffff, 0); 
+        bottomBoundary = this.add.rectangle(game.canvas.width / 2, 250, 800, 10, 0xffffff, 0); 
         this.physics.add.existing(bottomBoundary, false);
         bottomBoundary.body.setImmovable(true);
 
@@ -120,15 +153,16 @@
         //cursors = this.input.keyboard.createCursorKeys();    
 
         // Adding text
-        kmLabel = this.add.text(650, 5, "Metros até\no torneio", {
+        // Meters left
+        kmLabel = this.add.text(20, 5, "Meters to\ntournament:", {
             font: "14px Arial",
             fill: "#eeeeee",
-            align: "right"
+            align: "left"
         });
-        kmCount = this.add.text(730, 10, numKmLeft, {
+        kmCount = this.add.text(110, 10, numKmLeft, {
             font: "18px Arial",
             fill: "#ffffff",
-            align: "right"
+            boundsAlignH: "right"
         });
         kmTimer = this.time.addEvent({ 
             delay: travelSpeed * 100, 
@@ -136,21 +170,119 @@
             {
                 numKmLeft -= 1; 
                 kmCount.setText(numKmLeft);
+
+                if (numKmLeft <= 0) {
+                    gate = "success";    
+                }                
             }, 
             callbackScope: this, 
             loop: true 
         });
-        
+
+        // Time left
+        timeLeftLabel = this.add.text(20, 55, "Seconds left:", {
+            font: "14px Arial",
+            fill: "#eeeeee",
+            align: "left" 
+        });
+        timeLeftCount = this.add.text(110, 52.5, numTimeLeft, {
+            font: "18px Arial",
+            fill: "#ffffff",
+            boundsAlignH: "right"
+        });
+        timeLeftTimer = this.time.addEvent({ 
+            delay: 1000, 
+            callback: function() 
+            {
+                numTimeLeft -= 1; 
+                timeLeftCount.setText(numTimeLeft);
+
+                if (numTimeLeft <= 0) {
+                    gate = "failure";    
+                }   
+            }, 
+            callbackScope: this, 
+            loop: true 
+        });
+
+        // Start and instructions text        
+        startText = this.add.text(300, game.canvas.height / 4, "Oh no! Sebastian is late to the first badminton tournament of the season! Sebastian needs to get there fast so he can help cheer on the Miratus athletes.\n\nHelp Sebastian reach the Miratus Badminton center by flying through the favelas of Rio de Janeiro. Fly Superhero Sebastian through the clouds to reach the tournament and catch SUPERHERO WORDS along the way to speed up the trip! But watch out, the stormy clouds could slow Sebastian down.\n\nCLICK or TAP to make Sebastian fly higher.", {
+            font: "14px Arial",
+            fill: "#eeeeee",    
+            originX : 0.5,
+            wordWrap: {
+                width: 300,                                
+                useAdvancedWrap: false,
+                originX : 0.5
+            },
+        });        
+           
         
     }
 
     function update ()
     {
-        // Controls
-        if (this.input.activePointer.isDown)
-        {
-            sebastian.body.setVelocityY(-thrust);
-        }     
+        // Start and instructions
+        switch(gate) {
+            case "start":
+                timeLeftLabel.visible = false;
+                timeLeftCount.visible = false;
+                kmLabel.visible = false;
+                kmCount.visible = false;
+
+                spawnTimer.paused = true;
+                bottomBoundary.y = game.canvas.height / 2;
+
+                // If click or tap, progress game
+                if (this.input.activePointer.isDown)
+                {
+                    gate = "game";
+                    timeLeftLabel.visible = true;
+                    timeLeftCount.visible = true;
+                    kmLabel.visible = true;
+                    kmCount.visible = true;
+                    startText.visible = false;
+
+                    spawnTimer.paused = false;
+                    bottomBoundary.y = game.canvas.height * (4/5);
+                }  
+                break;
+            case "game":
+                // Controls
+                if (this.input.activePointer.isDown)
+                {
+                    sebastian.body.setVelocityY(-thrust);
+                } 
+                break;
+            case "success":
+                timeLeftLabel.visible = false;
+                timeLeftCount.visible = false;
+                kmLabel.visible = false;
+                kmCount.visible = false;
+
+                spawnTimer.paused = true;
+                bottomBoundary.y = game.canvas.height + 100;
+
+                startText.text = "Congratulations!\nYou made it just in time!";
+                startText.visible = true;
+                sebastian.body.setCollideWorldBounds(false);        
+                break;
+            case "failure":
+                timeLeftLabel.visible = false;
+                timeLeftCount.visible = false;
+                kmLabel.visible = false;
+                kmCount.visible = false;
+
+                spawnTimer.paused = true;
+                bottomBoundary.y = game.canvas.height + 100;
+
+                startText.text = "Oh no!\nYou ran out of time!";
+                startText.visible = true;
+                sebastian.body.setCollideWorldBounds(false);        
+                break;
+        }
+
+            
     }
 
     function spawnCollectible() 
@@ -159,7 +291,7 @@
         { 
             collectible.destroy(); 
         }
-        collectible = this.physics.add.sprite(850, Phaser.Math.Between(0, 250), "cloud" + Phaser.Math.Between(1, 2));        
+        collectible = this.physics.add.sprite(game.canvas.width + 100, Phaser.Math.Between(0, game.canvas.height * (4/5) ), "cloud" + Phaser.Math.Between(1, 2));        
         collectible.body.setVelocityX(-collectibleSpeed);
 
         this.physics.add.overlap(sebastian, collectible, collect, null, this);
@@ -185,10 +317,15 @@
             travelSpeed -= 1;  
             kmTimer.delay = travelSpeed * 100;
             boundaryTween.play();  
+
+            // Speeding up cape animation
+            sebastian.anims.sebastianFlying -= 200; 
         }                      
     };
 
 </script>
+
+
 
 </body>
 </html>
