@@ -116,14 +116,14 @@
         });
 
         // Adding sebastian to physics engine
-        sebastian = this.physics.add.sprite(200, 0, "sebastian1").play("sebastianFlying");
+        sebastian = this.physics.add.sprite(game.canvas.width / 4, 0, "sebastian1").play("sebastianFlying");
         sebastian.setScale(window.devicePixelRatio * .2, window.devicePixelRatio * .2).refreshBody();
         sebastian.body.setCollideWorldBounds(true);        
         sebastian.body.setGravityY(gravity);     
         sebastian.body.setGravityX(-(gravity - 200));  
         
         // Adding left boundary
-        leftBoundary = this.add.rectangle(50, game.canvas.height / 2, 10, game.canvas.height, 0xffffff, 0); 
+        leftBoundary = this.add.rectangle(game.canvas.width / 5, game.canvas.height / 2, 10, game.canvas.height, 0xffffff, 0); 
         this.physics.add.existing(leftBoundary, false);
         leftBoundary.body.setImmovable(true);
         // Adding tween
@@ -133,7 +133,7 @@
             {
                 getStart: function () 
                 {
-                    return leftBoundaryPosition - 50;
+                    return leftBoundaryPosition - window.devicePixelRatio * 50;
                 },
                 getEnd: function () 
                 {
@@ -193,12 +193,12 @@
         });
 
         // Time left
-        timeLeftLabel = this.add.text(20, 55, "Seconds left:", {
-            font: (window.devicePixelRatio + 22) + "px Arial",
+        timeLeftLabel = this.add.text(20, window.devicePixelRatio * 67.5, "Seconds left:", {
+            font: (window.devicePixelRatio * 22) + "px Arial",
             fill: "#eeeeee",
             align: "left" 
         });
-        timeLeftCount = this.add.text(180, 52.5, numTimeLeft, {
+        timeLeftCount = this.add.text(180, window.devicePixelRatio * 65, numTimeLeft, {
             font: (window.devicePixelRatio * 26) + "px Arial",
             fill: "#ffffff",
             boundsAlignH: "right"
@@ -335,7 +335,7 @@
         {
             collectibleSpeed += 100;
             spawnTimer.delay -= 100; 
-            leftBoundaryPosition += 50;   
+            leftBoundaryPosition += window.devicePixelRatio * 50;
             
             // Adjusting travel time and timer speed
             travelSpeed -= 1;  
