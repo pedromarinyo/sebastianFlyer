@@ -42,10 +42,10 @@
     var spawnTimer;
     var cursors; 
 
-    var gravity = 800;
-    var thrust = 400;
+    var gravity = 800 * window.devicePixelRatio;
+    var thrust = 400 * window.devicePixelRatio;
     var spawnTime = 3000;
-    var collectibleSpeed = 300;
+    var collectibleSpeed = 300 * window.devicePixelRatio;
 
     var leftBoundaryPosition = 100;
     var leftBoundaryBounds = 250;
@@ -362,7 +362,7 @@
         
         if (leftBoundaryPosition < leftBoundaryBounds) 
         {
-            collectibleSpeed += 100;
+            collectibleSpeed += 100 * window.devicePixelRatio;
             spawnTimer.delay -= 100; 
             leftBoundaryPosition += window.devicePixelRatio * 50;
             
