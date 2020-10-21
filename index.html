@@ -42,8 +42,8 @@
     var spawnTimer;
     var cursors; 
 
-    var gravity = 600;
-    var thrust = 200;
+    var gravity = 800;
+    var thrust = 400;
     var spawnTime = 3000;
     var collectibleSpeed = 300;
 
@@ -72,7 +72,7 @@
             update: update
         },
         audio: {
-            disableWebAudio: true
+            disableWebAudio: false
         }      
     };
 
@@ -192,12 +192,12 @@
 
         // Adding text
         // Meters left
-        kmLabel = this.add.text(window.devicePixelRatio * 20, 5, "Meters to\ntournament:", {
+        kmLabel = this.add.text(window.devicePixelRatio * 20, window.devicePixelRatio * 5, "Meters to\ntournament:", {
             font: (window.devicePixelRatio * 22) + "px Arial",
             fill: "#eeeeee",
             align: "left"
         });
-        kmCount = this.add.text(window.devicePixelRatio * 180, 10, numKmLeft, {
+        kmCount = this.add.text(window.devicePixelRatio * 180, window.devicePixelRatio * 10, numKmLeft, {
             font: (window.devicePixelRatio * 26) + "px Arial",
             fill: "#ffffff",
             boundsAlignH: "right"
