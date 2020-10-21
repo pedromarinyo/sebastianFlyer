@@ -41,7 +41,7 @@
 
     var gravity = 600;
     var thrust = 200;
-    var spawnTime = 4000;
+    var spawnTime = 3000;
     var collectibleSpeed = 300;
 
     var leftBoundaryPosition = 100;
@@ -117,7 +117,7 @@
 
         // Adding sebastian to physics engine
         sebastian = this.physics.add.sprite(200, 0, "sebastian1").play("sebastianFlying");
-        sebastian.setScale(window.devicePixelRatio * .15, window.devicePixelRatio * .15).refreshBody();
+        sebastian.setScale(window.devicePixelRatio * .2, window.devicePixelRatio * .2).refreshBody();
         sebastian.body.setCollideWorldBounds(true);        
         sebastian.body.setGravityY(gravity);     
         sebastian.body.setGravityX(-(gravity - 200));  
@@ -146,7 +146,7 @@
         });
 
         // Adding bottom boundary
-        bottomBoundary = this.add.rectangle(game.canvas.width / 2, 250, game.canvas.width, 10, 0xffffff, 1); 
+        bottomBoundary = this.add.rectangle(game.canvas.width / 2, 250, game.canvas.width, 10, 0xffffff, 0); 
         this.physics.add.existing(bottomBoundary, false);
         bottomBoundary.body.setImmovable(true);
 
@@ -168,12 +168,12 @@
         // Adding text
         // Meters left
         kmLabel = this.add.text(20, 5, "Meters to\ntournament:", {
-            font: (window.devicePixelRatio * 14) + "px Arial",
+            font: (window.devicePixelRatio * 22) + "px Arial",
             fill: "#eeeeee",
             align: "left"
         });
-        kmCount = this.add.text(110, 10, numKmLeft, {
-            font: "18px Arial",
+        kmCount = this.add.text(180, 10, numKmLeft, {
+            font: (window.devicePixelRatio * 26) + "px Arial",
             fill: "#ffffff",
             boundsAlignH: "right"
         });
@@ -194,12 +194,12 @@
 
         // Time left
         timeLeftLabel = this.add.text(20, 55, "Seconds left:", {
-            font: (window.devicePixelRatio + 14) + "px Arial",
+            font: (window.devicePixelRatio + 22) + "px Arial",
             fill: "#eeeeee",
             align: "left" 
         });
-        timeLeftCount = this.add.text(110, 52.5, numTimeLeft, {
-            font: "18px Arial",
+        timeLeftCount = this.add.text(180, 52.5, numTimeLeft, {
+            font: (window.devicePixelRatio * 26) + "px Arial",
             fill: "#ffffff",
             boundsAlignH: "right"
         });
@@ -220,19 +220,19 @@
 
         // Start and instructions text   
         titleText = this.add.text(250, game.canvas.height / 6, "Tournament Countdown", {
-            font: (window.devicePixelRatio * 32) + "px Fresca",
+            font: (window.devicePixelRatio * 36) + "px Fresca",
             fill: "#fff",    
             originX : 0.5,          
         });
 
         startText = this.add.text(300, game.canvas.height / 4, "Oh no! Sebastian is late to the first badminton tournament of the season! Sebastian needs to get there fast so he can help cheer on the Miratus athletes.\n\nHelp Sebastian reach the Miratus Badminton center by flying through the favelas of Rio de Janeiro. Fly Superhero Sebastian through the clouds to reach the tournament and catch SUPERHERO WORDS along the way to speed up the trip! But watch out, the stormy clouds could slow Sebastian down.\n\nCLICK or TAP to make Sebastian fly higher.", {
-            font: (window.devicePixelRatio * 18) + "px Fresca",
+            font: (window.devicePixelRatio * 28) + "px Fresca",
             fill: "#eeeeee",    
-            originX : 0.5,
+            
             wordWrap: {
-                width: game.canvas.width - 400,                                
+                width: game.canvas.width - 350,                                
                 useAdvancedWrap: false,
-                originX : 0.5
+            
             },
         });        
            
@@ -309,12 +309,16 @@
     {
         if (collectible) 
         { 
-            collectible.destroy(); 
+            if(collectible.x <= 0) {
+                collectible.destroy();                     
+            }            
         }
-        collectible = this.physics.add.sprite(game.canvas.width + 100, Phaser.Math.Between(0, game.canvas.height * (4/5) ), "cloud" + Phaser.Math.Between(1, 2));        
+
+        collectible = this.physics.add.sprite(game.canvas.width + 100, Phaser.Math.Between(0, game.canvas.height * (4/5) ), "cloud" + Phaser.Math.Between(1, 2)).setScale(window.devicePixelRatio);        
         collectible.body.setVelocityX(-collectibleSpeed);
 
         this.physics.add.overlap(sebastian, collectible, collect, null, this);
+        
     }
 
     function collect (sebastian, collectible)
