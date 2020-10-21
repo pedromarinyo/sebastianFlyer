@@ -31,6 +31,9 @@
     var gate = "start";
     var startText;
     var titleText;
+    var music; 
+    var wind; 
+    var chime; 
 
     var leftBoundary;
     var bottomBoundary;
@@ -67,7 +70,10 @@
             preload: preload,
             create: create,
             update: update
-        }         
+        },
+        audio: {
+            disableWebAudio: true
+        }      
     };
 
     
@@ -92,13 +98,32 @@
        this.load.image('cloud2', 'assets/cloud2.png');  
        this.load.image('sebastian1', 'assets/sebastian1.png');  
        this.load.image('sebastian2', 'assets/sebastian2.png');  
-       this.load.image('sebastian3', 'assets/sebastian3.png');   
+       this.load.image('sebastian3', 'assets/sebastian3.png');  
+
+       this.load.audio('music', 'assets/music.mp3'); 
+       this.load.audio('wind', 'assets/wind.mp3'); 
+       this.load.audio('chime', 'assets/chime.mp3'); 
        
     }
 
     function create ()
     {
+        // Background color
         this.cameras.main.setBackgroundColor('#9addf3')
+
+        // Music and wind
+        music = this.sound.add("music", {                                                        
+            loop: true,                    
+        });
+
+        wind = this.sound.add("wind", {                                                        
+            loop: true,  
+            volume: .2                 
+        });
+        chime = this.sound.add("chime", {                                                        
+            loop: false,  
+            volume: .8                
+        });
 
         // Adding sky background
         this.add.image(game.canvas.width / 2, game.canvas.height / 2, "sky").setScale(game.canvas.width/800, game.canvas.height/600);
@@ -167,12 +192,12 @@
 
         // Adding text
         // Meters left
-        kmLabel = this.add.text(20, 5, "Meters to\ntournament:", {
+        kmLabel = this.add.text(window.devicePixelRatio * 20, 5, "Meters to\ntournament:", {
             font: (window.devicePixelRatio * 22) + "px Arial",
             fill: "#eeeeee",
             align: "left"
         });
-        kmCount = this.add.text(180, 10, numKmLeft, {
+        kmCount = this.add.text(window.devicePixelRatio * 180, 10, numKmLeft, {
             font: (window.devicePixelRatio * 26) + "px Arial",
             fill: "#ffffff",
             boundsAlignH: "right"
@@ -193,12 +218,12 @@
         });
 
         // Time left
-        timeLeftLabel = this.add.text(20, window.devicePixelRatio * 67.5, "Seconds left:", {
+        timeLeftLabel = this.add.text(window.devicePixelRatio * 20, window.devicePixelRatio * 67.5, "Seconds left:", {
             font: (window.devicePixelRatio * 22) + "px Arial",
             fill: "#eeeeee",
             align: "left" 
         });
-        timeLeftCount = this.add.text(180, window.devicePixelRatio * 65, numTimeLeft, {
+        timeLeftCount = this.add.text(window.devicePixelRatio * 180, window.devicePixelRatio * 65, numTimeLeft, {
             font: (window.devicePixelRatio * 26) + "px Arial",
             fill: "#ffffff",
             boundsAlignH: "right"
@@ -265,6 +290,8 @@
 
                     spawnTimer.paused = false;
                     bottomBoundary.y = game.canvas.height * (4/5);
+                    music.play({seek: 3.5});
+                    wind.play();
                 }  
                 break;
             case "game":
@@ -325,6 +352,8 @@
     {
         collectible.destroy();
         this.cameras.main.flash();
+
+        chime.play({seek: 1});
         speedUp();
     }
 
