@@ -28,8 +28,7 @@
     // gate values: start, game, success, failure
     var gate = "start";
     var startText;
-    var gameOverText;
-    var successText; 
+    var titleText;
 
     var leftBoundary;
     var bottomBoundary;
@@ -72,6 +71,18 @@
     
     var game = new Phaser.Game(config);
 
+    WebFontConfig = {
+        google: { families: ["Fresca","Flamenco","Indie Flower"] }
+    };
+    (function() {
+        var wf = document.createElement('script');
+        wf.src = ('https:' == document.location.protocol ? 'https' : 'http') + '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+        wf.type = 'text/javascript';
+        wf.async = 'true';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(wf, s);
+    })();
+
     function preload ()
     {
        this.load.image('sky', 'assets/sky.png');   
@@ -80,7 +91,7 @@
        this.load.image('sebastian1', 'assets/sebastian1.png');  
        this.load.image('sebastian2', 'assets/sebastian2.png');  
        this.load.image('sebastian3', 'assets/sebastian3.png');   
-
+       
     }
 
     function create ()
@@ -88,7 +99,7 @@
         this.cameras.main.setBackgroundColor('#9addf3')
 
         // Adding sky background
-        this.add.image(game.canvas.width / 2, 300, "sky").setScale(game.canvas.width/800, 600/game.canvas.height);
+        this.add.image(game.canvas.width / 2, game.canvas.height / 2, "sky").setScale(game.canvas.width/800, game.canvas.height/600);
             
         // Creating sebastian flying animation
         this.anims.create({
@@ -205,13 +216,19 @@
             loop: true 
         });
 
-        // Start and instructions text        
+        // Start and instructions text   
+        titleText = this.add.text(250, game.canvas.height / 6, "Tournament Countdown", {
+            font: "32px Fresca",
+            fill: "#fff",    
+            originX : 0.5,          
+        });
+
         startText = this.add.text(300, game.canvas.height / 4, "Oh no! Sebastian is late to the first badminton tournament of the season! Sebastian needs to get there fast so he can help cheer on the Miratus athletes.\n\nHelp Sebastian reach the Miratus Badminton center by flying through the favelas of Rio de Janeiro. Fly Superhero Sebastian through the clouds to reach the tournament and catch SUPERHERO WORDS along the way to speed up the trip! But watch out, the stormy clouds could slow Sebastian down.\n\nCLICK or TAP to make Sebastian fly higher.", {
-            font: "14px Arial",
+            font: "18px Fresca",
             fill: "#eeeeee",    
             originX : 0.5,
             wordWrap: {
-                width: 300,                                
+                width: game.canvas.width - 400,                                
                 useAdvancedWrap: false,
                 originX : 0.5
             },
@@ -242,6 +259,7 @@
                     kmLabel.visible = true;
                     kmCount.visible = true;
                     startText.visible = false;
+                    titleText.visible = false;
 
                     spawnTimer.paused = false;
                     bottomBoundary.y = game.canvas.height * (4/5);
