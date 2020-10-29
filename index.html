@@ -2,6 +2,8 @@
 <html lang="en"> 
 <head> 
     <meta charset="UTF-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content = "width = device-width, initial-scale = 1.0, minimum-scale = 1, maximum-scale = 1, user-scalable = no" />
     <title>Sebastian Flyer</title>
     <script src="./phaser.min.js"></script>
     <style type="text/css">
@@ -474,14 +476,14 @@
     {
         collectible.destroy();        
 
-        chime.play();
+        chime.play({seek : 1});
         speedUp();
     }
 
     function collide(sebastian, obsticle) {
         obsticle.destroy();        
 
-        thunder.play();
+        thunder.play({seek: 1});
         slowDown();
     }
 
@@ -494,7 +496,7 @@
             spawnCollectibleTimer.delay -= 100; 
             spawnBuildingsTimer.delay -= 200;
             buildingSpeed += 100;
-            sebastian.x += window.devicePixelRatio * 20;
+            // sebastian.x += window.devicePixelRatio * 20;
             
             // Adjusting travel time and timer speed
             travelSpeed -= 1;              
@@ -515,7 +517,7 @@
             spawnCollectibleTimer.delay += 100; 
             spawnBuildingsTimer.delay += 200;
             buildingSpeed -= 100;
-            sebastian.x -= window.devicePixelRatio * 20;
+            // sebastian.x -= window.devicePixelRatio * 20;
             
             // Adjusting travel time and timer speed
             travelSpeed += 1;  
