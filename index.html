@@ -35,12 +35,14 @@
     var wind; 
     var chime; 
     var thunder;
+    var applause;
 
     var leftBoundary;
     var bottomBoundary;
     var collectible; 
     var obsticle; 
     var building;
+    var newspaper;
     var spawnCollectibleTimer;
     var spawnBuildingsTimer;
     var cursors; 
@@ -57,7 +59,7 @@
     var leftBoundaryMinBounds;
 
     var kmLabel;
-    var numKmLeft = 100;
+    var numKmLeft = 500;
     var travelSpeed = 5;
     var kmTimer;
 
@@ -117,6 +119,7 @@
        this.load.audio('wind', 'assets/wind.mp3'); 
        this.load.audio('chime', 'assets/chime.mp3'); 
        this.load.audio('thunder', 'assets/thunder.mp3'); 
+       this.load.audio('applause', 'assets/applause.mp3'); 
 
        // Loading clouds
        for (var i = 1; i <= numLightClouds; i++) {
@@ -155,13 +158,23 @@
             loop: false,  
             volume: .8                
         });
+        applause = this.sound.add("applause", {                                                        
+            loop: false,  
+            volume: .8                
+        });
 
         // Adding sky background
         this.add.image(game.canvas.width / 2, game.canvas.height / 2, "sky").setScale(game.canvas.width/800, game.canvas.height/600);
             
-
-        
-
+        newspaper = this.add.image(game.canvas.width / 2, game.canvas.height / 2, "success").setScale(game.canvas.width/800, game.canvas.height/600);
+        newspaper.setScale(0, 0);                    
+        newspaper.visible = false;
+        newspaperTwirl = this.tweens.add({
+            targets: newspaper,
+            scaleX: { value: 1, duration: 2000, ease: 'Bounce.easeOut' },
+            scaleY: { value: 1, duration: 2000, ease: 'Bounce.easeOut' },
+            rotation: { value: 6.2, duration: 2500, ease: 'Power2' }            
+        });
 
         // Creating sebastian flying animation
         this.anims.create({
@@ -272,7 +285,7 @@
             {
                 numKmLeft -= 1; 
                 kmCount.setText(numKmLeft);
-
+                
                 if (numKmLeft <= 0) {
                     gate = "success";    
                 }                
@@ -337,8 +350,13 @@
                 timeLeftCount.visible = false;
                 kmLabel.visible = false;
                 kmCount.visible = false;
+                newspaper.visible = false;
+                newspaper.setScale(0, 0);                
 
                 spawnCollectibleTimer.paused = true;
+                spawnBuildingsTimer.paused = true; 
+                kmTimer.paused = true;
+                timeLeftTimer.paused = true;
                 bottomBoundary.y = game.canvas.height / 2;
 
                 // If click or tap, progress game
@@ -353,6 +371,9 @@
                     titleText.visible = false;
 
                     spawnCollectibleTimer.paused = false;
+                    spawnBuildingsTimer.paused = false; 
+                    kmTimer.paused = false;
+                    timeLeftTimer.paused = false;
                     bottomBoundary.y = game.canvas.height * (4/5);
                     music.play({seek: 3.5});
                     wind.play();
@@ -365,22 +386,27 @@
                     sebastian.body.setVelocityY(-thrust);
                 } 
                 break;
-            case "success":
-                timeLeftLabel.visible = false;
-                timeLeftCount.visible = false;
-                kmLabel.visible = false;
-                kmCount.visible = false;
+            case "success":                
+                if(timeLeftLabel.visible != false) 
+                {
+                    timeLeftLabel.visible = false;
+                    timeLeftCount.visible = false;
+                    kmLabel.visible = false;
+                    kmCount.visible = false;
 
-                spawnCollectibleTimer.paused = true;
-                bottomBoundary.y = game.canvas.height + 100;
+                    spawnCollectibleTimer.paused = true;
+                    spawnBuildingsTimer.paused = true;
+                    bottomBoundary.y = game.canvas.height + 100;
 
-                startText.text = "Congratulations!\nYou made it just in time!";
-                startText.visible = true;
-                sebastian.body.setCollideWorldBounds(false);   
-
-                this.add.image(game.canvas.width / 2, game.canvas.height / 2, "success").setScale(game.canvas.width/800, game.canvas.height/600);
-
-
+                    sebastian.body.setCollideWorldBounds(false);   
+                    
+                    newspaper.visible = true; 
+                    newspaper.setDepth(5);
+                    newspaperTwirl.play();   
+                    music.pause();
+                    wind.pause();
+                    applause.play();                 
+                }                                                     
                 break;
             case "failure":
                 timeLeftLabel.visible = false;
@@ -391,14 +417,10 @@
                 spawnCollectibleTimer.paused = true;
                 bottomBoundary.y = game.canvas.height + 100;
 
-                startText.text = "Oh no!\nYou ran out of time!";
+                startText.text = "Oh no!\nYou ran out of time!\n\nRefresh to play again.";
                 startText.visible = true;
                 sebastian.body.setCollideWorldBounds(false); 
-
-                if (this.input.activePointer.isDown)
-                {
-                    gate = "start";
-                }        
+    
                 break;
         }
     }
