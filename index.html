@@ -50,7 +50,7 @@
     var gravity = 800 * window.devicePixelRatio;
     var thrust = 200 * window.devicePixelRatio;
     var spawnTime = 2000;
-    var buildingSpawnTime = 1000; 
+    var buildingSpawnTime = 1800; 
     var collectibleSpeed = 200 * window.devicePixelRatio;
     var buildingSpeed = 300 * window.devicePixelRatio;
 
@@ -189,55 +189,54 @@
         });
 
         // Adding sebastian to physics engine
-        sebastian = this.physics.add.sprite(game.canvas.width / 2, 0, "sebastian1").play("sebastianFlying");
-        sebastian.setScale(window.devicePixelRatio * .2, window.devicePixelRatio * .2).refreshBody();
+        sebastian = this.physics.add.sprite(game.canvas.width / 5, 0, "sebastian1").play("sebastianFlying").setScale(window.devicePixelRatio, window.devicePixelRatio).refreshBody();       
         sebastian.body.setCollideWorldBounds(true);        
         sebastian.body.setGravityY(gravity);     
-        sebastian.body.setGravityX(-(gravity - 200));  
+        //sebastian.body.setGravityX(-(gravity - 200));  
         
         // Adding left boundary
-        leftBoundary = this.add.rectangle(game.canvas.width / 5, game.canvas.height / 2, 10, game.canvas.height, 0xffffff, 0); 
-        this.physics.add.existing(leftBoundary, false);
-        leftBoundary.body.setImmovable(true);
+        // leftBoundary = this.add.rectangle(game.canvas.width / 5, game.canvas.height / 2, 10, game.canvas.height, 0xffffff, 1); 
+        // this.physics.add.existing(leftBoundary, false);
+        // leftBoundary.body.setImmovable(true);
 
         leftBoundaryMinBounds = game.canvas.width / 5;
-        leftBoundaryMaxBounds = game.canvas.width / 4;
+        leftBoundaryMaxBounds = game.canvas.width / 4;        
 
         // Adding tweens
-        boundaryTweenSpeedUp = this.tweens.add({
-            targets: leftBoundary,
-            x: 
-            {
-                getStart: function () 
-                {
-                    return leftBoundaryPosition - window.devicePixelRatio * 50;
-                },
-                getEnd: function () 
-                {
-                    return leftBoundaryPosition;
-                },
-                ease: 'Sine.easeOut',
-                duration: 1000
-            }
+        // boundaryTweenSpeedUp = this.tweens.add({
+        //     targets: sebastian,
+        //     x: 
+        //     {
+        //         getStart: function()
+        //         {
+        //             return leftBoundaryPosition - window.devicePixelRatio * 50;
+        //         }, 
+        //         getEnd: function () 
+        //         {
+        //             return leftBoundaryPosition;
+        //         },
+        //         ease: 'Sine.easeOut',
+        //         duration: 1000
+        //     }
             
-        });
-        boundaryTweenSlowDown = this.tweens.add({
-            targets: leftBoundary,
-            x: 
-            {
-                getStart: function () 
-                {
-                    return leftBoundaryPosition + window.devicePixelRatio * 50;
-                },
-                getEnd: function () 
-                {
-                    return leftBoundaryPosition;
-                },
-                ease: 'Sine.easeOut',
-                duration: 1000
-            }
+        // });
+        // boundaryTweenSlowDown = this.tweens.add({
+        //     targets: sebastian,
+        //     x: 
+        //     {
+        //         getStart: function()
+        //         {
+        //             return leftBoundaryPosition + window.devicePixelRatio * 50;
+        //         }, 
+        //         getEnd: function () 
+        //         {
+        //             return leftBoundaryPosition;
+        //         },
+        //         ease: 'Sine.easeOut',
+        //         duration: 1000
+        //     }
             
-        });
+        // });
 
         // Adding bottom boundary
         bottomBoundary = this.add.rectangle(game.canvas.width / 2, 250, game.canvas.width, 10, 0xffffff, 0); 
@@ -261,7 +260,7 @@
         });
 
         // Adding colliders
-        this.physics.add.collider(sebastian, leftBoundary);
+        // this.physics.add.collider(sebastian, leftBoundary);
         this.physics.add.collider(sebastian, bottomBoundary);
 
         // Adding keyboard controls
@@ -350,8 +349,7 @@
                 timeLeftCount.visible = false;
                 kmLabel.visible = false;
                 kmCount.visible = false;
-                newspaper.visible = false;
-                newspaper.setScale(0, 0);                
+                newspaper.visible = false;                            
 
                 spawnCollectibleTimer.paused = true;
                 spawnBuildingsTimer.paused = true; 
@@ -442,8 +440,7 @@
             }
 
             // Generating random collectable 
-            var collectibleName = "lightCloud" + Phaser.Math.Between(1, numLightClouds);         
-            console.log(collectibleName);
+            var collectibleName = "lightCloud" + Phaser.Math.Between(1, numLightClouds);                     
 
             collectible = this.physics.add.sprite(game.canvas.width + 100, Phaser.Math.Between(0, game.canvas.height * (4/5) ), collectibleName);    
             collectible.setScale(window.devicePixelRatio * 0.8).refreshBody();    
@@ -464,8 +461,7 @@
 
             // Generating random collectable 
             var obsticleName = "darkCloud" + Phaser.Math.Between(1, numDarkClouds); 
-            console.log(obsticleName);
-
+            
             obsticle = this.physics.add.sprite(game.canvas.width + 100, Phaser.Math.Between(0, game.canvas.height * (4/5) ), obsticleName);    
             obsticle.setScale(window.devicePixelRatio * 0.8).refreshBody();    
             obsticle.body.setVelocityX(-collectibleSpeed);
@@ -492,18 +488,18 @@
     function speedUp()
     {
         
-        if (leftBoundaryPosition < leftBoundaryMaxBounds) 
+        if (sebastian.x < leftBoundaryMaxBounds) 
         {
             collectibleSpeed += 100 * window.devicePixelRatio;
             spawnCollectibleTimer.delay -= 100; 
             spawnBuildingsTimer.delay -= 200;
             buildingSpeed += 100;
-            leftBoundaryPosition += window.devicePixelRatio * 50;
+            sebastian.x += window.devicePixelRatio * 20;
             
             // Adjusting travel time and timer speed
             travelSpeed -= 1;              
             kmTimer.delay = travelSpeed * 100;
-            boundaryTweenSpeedUp.play();  
+            //boundaryTweenSpeedUp.play();  
 
             // Speeding up cape animation
             sebastian.anims.sebastianFlying -= 200; 
@@ -513,18 +509,18 @@
     function slowDown() 
     {
         
-        if (leftBoundaryPosition > leftBoundaryMinBounds) 
+        if (sebastian.x > leftBoundaryMinBounds) 
         {
             collectibleSpeed -= 100 * window.devicePixelRatio;
             spawnCollectibleTimer.delay += 100; 
             spawnBuildingsTimer.delay += 200;
             buildingSpeed -= 100;
-            leftBoundaryPosition -= window.devicePixelRatio * 50;
+            sebastian.x -= window.devicePixelRatio * 20;
             
             // Adjusting travel time and timer speed
             travelSpeed += 1;  
             kmTimer.delay = travelSpeed * 100;
-            boundaryTweenSlowDown.play();  
+            //boundaryTweenSlowDown.play();  
 
             // Speeding up cape animation
             sebastian.anims.sebastianFlying += 200; 
@@ -541,8 +537,7 @@
         }   
 
         // Generating random collectable 
-        var obsticleName = "buildings" + Phaser.Math.Between(1, numBuildings); 
-        console.log(obsticleName);
+        var obsticleName = "buildings" + Phaser.Math.Between(1, numBuildings);         
 
         var random = Math.random() * (1 - 0.7) + 0.7;
 
