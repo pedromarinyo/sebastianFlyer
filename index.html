@@ -34,30 +34,41 @@
     var music; 
     var wind; 
     var chime; 
+    var thunder;
 
     var leftBoundary;
     var bottomBoundary;
     var collectible; 
     var obsticle; 
-    var spawnTimer;
+    var building;
+    var spawnCollectibleTimer;
+    var spawnBuildingsTimer;
     var cursors; 
 
     var gravity = 800 * window.devicePixelRatio;
-    var thrust = 400 * window.devicePixelRatio;
-    var spawnTime = 3000;
-    var collectibleSpeed = 300 * window.devicePixelRatio;
+    var thrust = 200 * window.devicePixelRatio;
+    var spawnTime = 2000;
+    var buildingSpawnTime = 1000; 
+    var collectibleSpeed = 200 * window.devicePixelRatio;
+    var buildingSpeed = 300 * window.devicePixelRatio;
 
     var leftBoundaryPosition = 100;
-    var leftBoundaryBounds = 250;
+    var leftBoundaryMaxBounds;
+    var leftBoundaryMinBounds;
 
     var kmLabel;
-    var numKmLeft = 10000;
+    var numKmLeft = 100;
     var travelSpeed = 5;
     var kmTimer;
 
     var timeLeftCount;
     var timeLeftTimer; 
     var numTimeLeft = 3 * 60; 
+
+    // Clouds to load
+    var numLightClouds = 7;
+    var numDarkClouds = 5;
+    var numBuildings = 3;
 
     var config = {
         type: Phaser.CANVAS,
@@ -79,6 +90,7 @@
     
     var game = new Phaser.Game(config);
 
+    // Google WebFont
     WebFontConfig = {
         google: { families: ["Fresca","Flamenco","Indie Flower"] }
     };
@@ -99,10 +111,25 @@
        this.load.image('sebastian1', 'assets/sebastian1.png');  
        this.load.image('sebastian2', 'assets/sebastian2.png');  
        this.load.image('sebastian3', 'assets/sebastian3.png');  
+       this.load.image('success', 'assets/success.png');  
 
        this.load.audio('music', 'assets/music.mp3'); 
        this.load.audio('wind', 'assets/wind.mp3'); 
        this.load.audio('chime', 'assets/chime.mp3'); 
+       this.load.audio('thunder', 'assets/thunder.mp3'); 
+
+       // Loading clouds
+       for (var i = 1; i <= numLightClouds; i++) {
+           this.load.image('lightCloud' + i, 'assets/lightCloud' + i + '.png');         
+       }
+       for (var i = 1; i <= numDarkClouds; i++) {
+           this.load.image('darkCloud' + i, 'assets/darkCloud' + i + '.png');           
+       }
+
+       // Loading buildings
+       for (var i = 1; i <= numBuildings; i++) {
+           this.load.image('buildings' + i, 'assets/buildings' + i + '.png');           
+       }
        
     }
 
@@ -124,10 +151,18 @@
             loop: false,  
             volume: .8                
         });
+        thunder = this.sound.add("thunder", {                                                        
+            loop: false,  
+            volume: .8                
+        });
 
         // Adding sky background
         this.add.image(game.canvas.width / 2, game.canvas.height / 2, "sky").setScale(game.canvas.width/800, game.canvas.height/600);
             
+
+        
+
+
         // Creating sebastian flying animation
         this.anims.create({
             key: "sebastianFlying",
@@ -141,7 +176,7 @@
         });
 
         // Adding sebastian to physics engine
-        sebastian = this.physics.add.sprite(game.canvas.width / 4, 0, "sebastian1").play("sebastianFlying");
+        sebastian = this.physics.add.sprite(game.canvas.width / 2, 0, "sebastian1").play("sebastianFlying");
         sebastian.setScale(window.devicePixelRatio * .2, window.devicePixelRatio * .2).refreshBody();
         sebastian.body.setCollideWorldBounds(true);        
         sebastian.body.setGravityY(gravity);     
@@ -151,14 +186,35 @@
         leftBoundary = this.add.rectangle(game.canvas.width / 5, game.canvas.height / 2, 10, game.canvas.height, 0xffffff, 0); 
         this.physics.add.existing(leftBoundary, false);
         leftBoundary.body.setImmovable(true);
-        // Adding tween
-        boundaryTween = this.tweens.add({
+
+        leftBoundaryMinBounds = game.canvas.width / 5;
+        leftBoundaryMaxBounds = game.canvas.width / 4;
+
+        // Adding tweens
+        boundaryTweenSpeedUp = this.tweens.add({
             targets: leftBoundary,
             x: 
             {
                 getStart: function () 
                 {
                     return leftBoundaryPosition - window.devicePixelRatio * 50;
+                },
+                getEnd: function () 
+                {
+                    return leftBoundaryPosition;
+                },
+                ease: 'Sine.easeOut',
+                duration: 1000
+            }
+            
+        });
+        boundaryTweenSlowDown = this.tweens.add({
+            targets: leftBoundary,
+            x: 
+            {
+                getStart: function () 
+                {
+                    return leftBoundaryPosition + window.devicePixelRatio * 50;
                 },
                 getEnd: function () 
                 {
@@ -176,11 +232,19 @@
         bottomBoundary.body.setImmovable(true);
 
         // Creating spawn timer        
-        spawnTimer = this.time.addEvent({
+        spawnCollectibleTimer = this.time.addEvent({
             delay: spawnTime, 
             callback: spawnCollectible, 
             callbackScope: this, 
             loop: true 
+        });
+
+        // Creating buildings timer
+        spawnBuildingsTimer = this.time.addEvent({
+            delay: buildingSpawnTime,
+            callback: spawnBuilding,
+            callbackScope: this,
+            loop: true
         });
 
         // Adding colliders
@@ -274,7 +338,7 @@
                 kmLabel.visible = false;
                 kmCount.visible = false;
 
-                spawnTimer.paused = true;
+                spawnCollectibleTimer.paused = true;
                 bottomBoundary.y = game.canvas.height / 2;
 
                 // If click or tap, progress game
@@ -288,7 +352,7 @@
                     startText.visible = false;
                     titleText.visible = false;
 
-                    spawnTimer.paused = false;
+                    spawnCollectibleTimer.paused = false;
                     bottomBoundary.y = game.canvas.height * (4/5);
                     music.play({seek: 3.5});
                     wind.play();
@@ -307,12 +371,16 @@
                 kmLabel.visible = false;
                 kmCount.visible = false;
 
-                spawnTimer.paused = true;
+                spawnCollectibleTimer.paused = true;
                 bottomBoundary.y = game.canvas.height + 100;
 
                 startText.text = "Congratulations!\nYou made it just in time!";
                 startText.visible = true;
-                sebastian.body.setCollideWorldBounds(false);        
+                sebastian.body.setCollideWorldBounds(false);   
+
+                this.add.image(game.canvas.width / 2, game.canvas.height / 2, "success").setScale(game.canvas.width/800, game.canvas.height/600);
+
+
                 break;
             case "failure":
                 timeLeftLabel.visible = false;
@@ -320,32 +388,68 @@
                 kmLabel.visible = false;
                 kmCount.visible = false;
 
-                spawnTimer.paused = true;
+                spawnCollectibleTimer.paused = true;
                 bottomBoundary.y = game.canvas.height + 100;
 
                 startText.text = "Oh no!\nYou ran out of time!";
                 startText.visible = true;
-                sebastian.body.setCollideWorldBounds(false);        
+                sebastian.body.setCollideWorldBounds(false); 
+
+                if (this.input.activePointer.isDown)
+                {
+                    gate = "start";
+                }        
                 break;
         }
-
-            
     }
+
 
     function spawnCollectible() 
     {
-        if (collectible) 
-        { 
-            if(collectible.x <= 0) {
-                collectible.destroy();                     
-            }            
+        // Spawns either an obsticle or collectible
+        var random = Phaser.Math.Between(0, 1);
+        
+        // Spawn collectible
+        if(random)
+        {
+            if (collectible) 
+            { 
+                if(collectible.x <= 0) {
+                    collectible.destroy();                     
+                }            
+            }
+
+            // Generating random collectable 
+            var collectibleName = "lightCloud" + Phaser.Math.Between(1, numLightClouds);         
+            console.log(collectibleName);
+
+            collectible = this.physics.add.sprite(game.canvas.width + 100, Phaser.Math.Between(0, game.canvas.height * (4/5) ), collectibleName);    
+            collectible.setScale(window.devicePixelRatio * 0.8).refreshBody();    
+            collectible.body.setVelocityX(-collectibleSpeed);
+
+            this.physics.add.overlap(sebastian, collectible, collect, null, this);
         }
 
-        collectible = this.physics.add.sprite(game.canvas.width + 100, Phaser.Math.Between(0, game.canvas.height * (4/5) ), "cloud" + Phaser.Math.Between(1, 2)).setScale(window.devicePixelRatio);        
-        collectible.body.setVelocityX(-collectibleSpeed);
+        // Spawn obsticle
+        else 
+        {
+            if (obsticle) 
+            { 
+                if(obsticle.x <= 0) {
+                    obsticle.destroy();                     
+                }            
+            }   
 
-        this.physics.add.overlap(sebastian, collectible, collect, null, this);
-        
+            // Generating random collectable 
+            var obsticleName = "darkCloud" + Phaser.Math.Between(1, numDarkClouds); 
+            console.log(obsticleName);
+
+            obsticle = this.physics.add.sprite(game.canvas.width + 100, Phaser.Math.Between(0, game.canvas.height * (4/5) ), obsticleName);    
+            obsticle.setScale(window.devicePixelRatio * 0.8).refreshBody();    
+            obsticle.body.setVelocityX(-collectibleSpeed);
+
+            this.physics.add.overlap(sebastian, obsticle, collide, null, this);
+        }  
     }
 
     function collect (sebastian, collectible)
@@ -357,24 +461,75 @@
         speedUp();
     }
 
+    function collide(sebastian, obsticle) {
+        obsticle.destroy();
+        this.cameras.main.flash();
+
+        thunder.play({seek: 1});
+        slowDown();
+    }
+
     function speedUp()
     {
         
-        if (leftBoundaryPosition < leftBoundaryBounds) 
+        if (leftBoundaryPosition < leftBoundaryMaxBounds) 
         {
             collectibleSpeed += 100 * window.devicePixelRatio;
-            spawnTimer.delay -= 100; 
+            spawnCollectibleTimer.delay -= 100; 
+            spawnBuildingsTimer.delay -= 200;
+            buildingSpeed += 100;
             leftBoundaryPosition += window.devicePixelRatio * 50;
             
             // Adjusting travel time and timer speed
-            travelSpeed -= 1;  
+            travelSpeed -= 1;              
             kmTimer.delay = travelSpeed * 100;
-            boundaryTween.play();  
+            boundaryTweenSpeedUp.play();  
 
             // Speeding up cape animation
             sebastian.anims.sebastianFlying -= 200; 
         }                      
     };
+
+    function slowDown() 
+    {
+        
+        if (leftBoundaryPosition > leftBoundaryMinBounds) 
+        {
+            collectibleSpeed -= 100 * window.devicePixelRatio;
+            spawnCollectibleTimer.delay += 100; 
+            spawnBuildingsTimer.delay += 200;
+            buildingSpeed -= 100;
+            leftBoundaryPosition -= window.devicePixelRatio * 50;
+            
+            // Adjusting travel time and timer speed
+            travelSpeed += 1;  
+            kmTimer.delay = travelSpeed * 100;
+            boundaryTweenSlowDown.play();  
+
+            // Speeding up cape animation
+            sebastian.anims.sebastianFlying += 200; 
+        } 
+    }
+
+    function spawnBuilding() 
+    {
+        if (building) 
+        { 
+            if(building.x <= 0) {
+                building.destroy();                     
+            }            
+        }   
+
+        // Generating random collectable 
+        var obsticleName = "buildings" + Phaser.Math.Between(1, numBuildings); 
+        console.log(obsticleName);
+
+        var random = Math.random() * (1 - 0.7) + 0.7;
+
+        building = this.physics.add.sprite(game.canvas.width + 300, game.canvas.height - (75 * window.devicePixelRatio * random), obsticleName);    
+        building.setScale(window.devicePixelRatio * random).refreshBody();    
+        building.body.setVelocityX(-buildingSpeed * random);     
+    }
 
 </script>
 
