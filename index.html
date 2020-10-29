@@ -476,16 +476,14 @@
 
     function collect (sebastian, collectible)
     {
-        collectible.destroy();
-        this.cameras.main.flash();
+        collectible.destroy();        
 
         chime.play({seek: 1});
         speedUp();
     }
 
     function collide(sebastian, obsticle) {
-        obsticle.destroy();
-        this.cameras.main.flash();
+        obsticle.destroy();        
 
         thunder.play({seek: 1});
         slowDown();
