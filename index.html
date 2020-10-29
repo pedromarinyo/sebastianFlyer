@@ -171,8 +171,8 @@
         newspaper.visible = false;
         newspaperTwirl = this.tweens.add({
             targets: newspaper,
-            scaleX: { value: 1, duration: 2000, ease: 'Bounce.easeOut' },
-            scaleY: { value: 1, duration: 2000, ease: 'Bounce.easeOut' },
+            scaleX: { value: game.canvas.width/800, duration: 2000, ease: 'Bounce.easeOut' },
+            scaleY: { value: game.canvas.height/600, duration: 2000, ease: 'Bounce.easeOut' },
             rotation: { value: 6.2, duration: 2500, ease: 'Power2' }            
         });
 
@@ -478,14 +478,14 @@
     {
         collectible.destroy();        
 
-        chime.play({seek: 1});
+        chime.play();
         speedUp();
     }
 
     function collide(sebastian, obsticle) {
         obsticle.destroy();        
 
-        thunder.play({seek: 1});
+        thunder.play();
         slowDown();
     }
 
