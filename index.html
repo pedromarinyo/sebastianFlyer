@@ -182,7 +182,7 @@
             targets: newspaper,
             scaleX: { value: game.canvas.width/800, duration: 2000, ease: 'Bounce.easeOut' },
             scaleY: { value: game.canvas.height/600, duration: 2000, ease: 'Bounce.easeOut' },
-            rotation: { value: 6.2, duration: 2500, ease: 'Bounce.easeOut' }            
+            rotation: { value: 6.2, duration: 2500, ease: 'Power2' }            
         });
 
         // Creating sebastian flying animation
@@ -553,7 +553,7 @@
 
         var random = Math.random() * (1 - 0.7) + 0.7;
 
-        building = this.physics.add.sprite(game.canvas.width + 300, game.canvas.height - (75 * window.devicePixelRatio * random), obsticleName);    
+        building = this.physics.add.sprite(game.canvas.width + (300 * window.devicePixelRatio), game.canvas.height - (75 * window.devicePixelRatio * random), obsticleName);    
         building.setScale(window.devicePixelRatio * random);   
         building.body.setVelocityX(-buildingSpeed * random);     
     }
